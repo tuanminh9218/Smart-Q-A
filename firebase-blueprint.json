@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "qaPair": {
+      "title": "QA Pair",
+      "description": "A question-answer pair in the global knowledge base.",
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string",
+          "description": "The question extracted or mapped from the source."
+        },
+        "answer": {
+          "type": "string",
+          "description": "The correct answer to the question."
+        },
+        "sourceDetail": {
+          "type": "string",
+          "description": "Where the QA pair came from (e.g. filename)."
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "The UID of the user who uploaded this."
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "When it was uploaded."
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Always true for this shared database."
+        }
+      },
+      "required": ["question", "answer", "ownerId", "createdAt", "isPublic"]
+    }
+  },
+  "firestore": {
+    "knowledgeBase": {
+      "schema": "qaPair",
+      "description": "The shared global collection of QA pairs."
+    }
+  }
+}

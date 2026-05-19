@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return request.auth != null && request.auth.token.email == 'tuanminh9218@gmail.com'; }
+    
+    function isValidQaPair(data) {
+      return data.keys().hasAll(['question', 'answer', 'ownerId', 'createdAt', 'isPublic'])
+        && data.keys().size() <= 6
+        && data.question is string && data.question.size() > 0 && data.question.size() <= 1000
+        && data.answer is string && data.answer.size() > 0 && data.answer.size() <= 5000
+        && (!data.keys().hasAll(['sourceDetail']) || (data.sourceDetail is string && data.sourceDetail.size() <= 1000))
+        && data.ownerId == request.auth.uid
+        && data.createdAt is timestamp
+        && data.isPublic == true;
+    }
+    
+    match /system_settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin() && settingId == 'global' && incoming().keys().hasAll(['isArEnabled']) && incoming().keys().size() == 1 && incoming().isArEnabled is bool;
+    }
+    
+    match /knowledgeBase/{kbId} {
+      // Allow read for everyone if it's public
+      allow read: if resource.data.isPublic == true;
+      
+      // Allow create if user is signed in and the data is valid
+      allow create: if isSignedIn() 
+                    && isValidId(kbId)
+                    && isValidQaPair(incoming())
+                    && incoming().createdAt == request.time;
+      
+      allow update: if isAdmin()
+                    && incoming().ownerId == existing().ownerId
+                    && incoming().createdAt == existing().createdAt
+                    && incoming().isPublic == existing().isPublic
+                    && isValidQaPair(incoming())
+                    && incoming().diff(existing()).affectedKeys().hasOnly(['question', 'answer', 'sourceDetail']);
+      
+      allow delete: if isAdmin();
+    }
+  }
+}

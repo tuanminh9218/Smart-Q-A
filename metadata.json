@@ -1,0 +1,6 @@
+{
+  "name": "Smart Q&A Study App",
+  "description": "An app to extract and study questions and answers from documents or images. Uses Gemini to analyze data and find the right answers quickly.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
